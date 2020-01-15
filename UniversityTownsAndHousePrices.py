@@ -15,6 +15,7 @@
 
 import pandas as pd
 import numpy as np
+import re
 
 states = {'OH': 'Ohio', 'KY': 'Kentucky', 'AS': 'American Samoa', 'NV': 'Nevada', \
     'WY': 'Wyoming', 'NA': 'National', 'AL': 'Alabama', 'MD': 'Maryland', 'AK': 'Alaska',\
@@ -30,29 +31,26 @@ states = {'OH': 'Ohio', 'KY': 'Kentucky', 'AS': 'American Samoa', 'NV': 'Nevada'
     'RI': 'Rhode Island', 'MN': 'Minnesota', 'VI': 'Virgin Islands', 'NH': 'New Hampshire', \
     'MA': 'Massachusetts', 'GA': 'Georgia', 'ND': 'North Dakota', 'VA': 'Virginia'}
 
-# Cleans, formats and returns a DataFrame of towns states they are in, from the university_towns.txt file
-def get_list_of_university_towns():
+def cleanUniversityTownData():
     uniTownsDf = pd.read_table('university_towns.txt',header=None)
     uniTownsDf.columns = ['Col1']
 
-    # remove strings in brackets or parentheses
-    uniTownsDf['Col1'] = uniTownsDf['Col1'].str.replace(r"\(.*\)","").str.strip()
-    uniTownsDf['Col1'] = uniTownsDf['Col1'].str.replace(r"\[.*\]","").str.strip()
-
-    # iterate through the file and format correctly by appending to the cleanUniTownsDf list
+    # iterate through the rows, and build a new DataFrame
+    cleanUniTownDF = []
     state = ''
-    cleanUniTownsDf = []
-    for line in uniTownsDf['Col1']:
-        # convert line to a string
-        lineStr = str(line)
-        # check that the value is a state:
-        isState = lineStr in states.values()
-        # if this is a state, store it, if not, add to the list
-        if(isState):
-            state = lineStr
-        else:
-            cleanUniTownsDf.append((state, lineStr))
-        
-    return pd.DataFrame(cleanUniTownsDf, columns=['State', 'RegionName'])
+    for rawLine in uniTownsDf['Col1']:
+        # check to see if line contains '[edit]', this means line is a state
+        isState = 'edit' in rawLine
 
-print(get_list_of_university_towns())
+        # if is a state, parse as a state, store, and continue looping
+        if (isState):
+            state = re.sub(r'\[.*\]', '', rawLine).strip()
+        # if not a state, parse and add to new DF
+        else:
+            newLine = re.sub(r'\[.*\]', '', rawLine).strip()
+            newLine = re.sub(r'\(.*\)', '', newLine).strip()
+            cleanUniTownDF.append((state, newLine))
+
+    return pd.DataFrame(cleanUniTownDF, columns=['State', 'RegionName'])
+
+print(cleanUniversityTownData().groupby('State').size())
