@@ -53,6 +53,6 @@ def get_list_of_university_towns():
         else:
             cleanUniTownsDf.append((state, lineStr))
         
-    return pd.DataFrame(cleanUniTownsDf, columns=['State', 'RegionName']).head(20)
+    return pd.DataFrame(cleanUniTownsDf, columns=['State', 'RegionName'])
 
-print(get_list_of_university_towns())
+print(get_list_of_university_towns().groupby('State').size())
