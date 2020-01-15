@@ -55,4 +55,4 @@ def get_list_of_university_towns():
         
     return pd.DataFrame(cleanUniTownsDf, columns=['State', 'RegionName'])
 
-print(get_list_of_university_towns().groupby('State').size())
+print(get_list_of_university_towns())
